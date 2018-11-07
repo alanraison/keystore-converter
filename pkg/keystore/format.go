@@ -1,9 +1,7 @@
 package keystore
 
+// Keystore is the contents of a Java Keystore; a collection of key pairs or public certificate chains
 type Keystore struct {
-	Magic   uint32
-	Version int32
-	Count   int32
 	Entries []interface{}
 }
 

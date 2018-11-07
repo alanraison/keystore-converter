@@ -1,6 +1,7 @@
 package keystore
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"io"
@@ -21,26 +22,40 @@ func Decode(r io.Reader) (*Keystore, error) {
 	if r == nil {
 		return nil, errors.New("No reader specified")
 	}
-	count, err := readHeader(make([]byte, 4))
-	if err != nil {
+	if err := readMagic(r); err != nil {
 		return nil, err
 	}
-	for i := 0; i < count; i++ {
-
+	if err := readVersion(r); err != nil {
+		return nil, err
 	}
+	// for i := 0; i < count; i++ {
+
+	// }
 	return nil, nil
 }
 
-func readHeader(b []byte) (int, error) {
-	if len(b) < 4 {
-		return 0, errors.New("Not a Java Keystore")
+func readMagic(r io.Reader) error {
+	br := bufio.NewReader(r)
+	magic, err := br.Peek(4)
+	if err != nil {
+		return errors.Wrap(err, "Reading from input")
 	}
-	if !bytes.Equal(b[:4], magicBytes) {
-		return 0, errors.New("Not a Java Keystore: wrong magic")
+	if !bytes.Equal(magic, magicBytes) {
+		return errors.New("Not a Java Keystore: wrong magic")
 	}
-	v := int32(binary.BigEndian.Uint32(b[4:8]))
+	return nil
+}
+
+func readVersion(r io.Reader) error {
+	vb := make([]byte, 4)
+	if c, err := r.Read(vb); c != 4 {
+		return errors.New("Could not read Keystore version")
+	} else if err != nil {
+		return err
+	}
+	v := int32(binary.BigEndian.Uint32(vb))
 	if v != version1 && v != version2 {
-		return 0, errors.Errorf("Version not supported: %v", v)
+		return errors.Errorf("Version not supported: %v", v)
 	}
-	return 0, nil
+	return nil
 }
