@@ -48,10 +48,10 @@ func readMagic(r io.Reader) error {
 
 func readVersion(r io.Reader) error {
 	vb := make([]byte, 4)
-	if c, err := r.Read(vb); c != 4 {
-		return errors.New("Could not read Keystore version")
-	} else if err != nil {
+	if c, err := r.Read(vb); err != nil {
 		return err
+	} else if c != 4 {
+		return errors.New("Could not read Keystore version")
 	}
 	v := int32(binary.BigEndian.Uint32(vb))
 	if v != version1 && v != version2 {

@@ -3,7 +3,15 @@ package keystore
 import (
 	"bytes"
 	"testing"
+
+	"github.com/pkg/errors"
 )
+
+type ErrorReader struct{}
+
+func (ErrorReader) Read([]byte) (int, error) {
+	return 0, errors.New("Test Error")
+}
 
 func TestPassingNilReaderIsError(t *testing.T) {
 	if _, err := Decode(nil); err == nil {
@@ -43,5 +51,11 @@ func TestShouldAcceptVersionOneOrVersionTwo(t *testing.T) {
 	header[3] = 0xf
 	if err := readVersion(bytes.NewReader(header)); err == nil {
 		t.Error("Expected version error (255), got none")
+	}
+	if err := readVersion(bytes.NewReader([]byte{0x0, 0x0})); err == nil {
+		t.Error("Expected error reading version (short read), got none")
+	}
+	if err := readVersion(ErrorReader{}); err == nil {
+		t.Error("Expected error reading version (error returned), got none")
 	}
 }
