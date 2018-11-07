@@ -56,9 +56,9 @@ func TestShouldReadCount(t *testing.T) {
 
 	count, err := readHeader(header)
 	if err == nil {
-
+		t.Errorf("Unexpected error reading count: %+v", err)
 	}
 	if count != 5 {
-
+		t.Errorf("Unexpected count, expected 5, got %v", count)
 	}
 }
